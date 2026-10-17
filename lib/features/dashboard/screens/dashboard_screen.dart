@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../calculator/screens/tdee_calculator_screen.dart';
@@ -14,6 +15,7 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeNotifierProvider);
     final profileAsync = ref.watch(currentProfileProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final summaryAsync = ref.watch(dailySummaryProvider);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/nutrition_calculator.dart';
 import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -18,6 +19,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeNotifierProvider);
     final profileAsync = ref.watch(currentProfileProvider);
     final supabase = ref.watch(supabaseServiceProvider);
     final currentUser = supabase.currentUser;

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../data/local/app_database.dart';
 import '../../auth/providers/auth_provider.dart';
 
@@ -159,6 +160,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(themeNotifierProvider);
     final weightLogsAsync = ref.watch(weightLogsProvider);
 
     return Scaffold(
