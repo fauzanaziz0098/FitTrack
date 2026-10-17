@@ -166,7 +166,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       color: AppColors.primary.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.fitness_center, color: AppColors.primary, size: 28),
+                    child: Icon(Icons.fitness_center, color: AppColors.primary, size: 28),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -236,7 +236,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.dark(
+                        colorScheme: ColorScheme.dark(
                           primary: AppColors.primary,
                           onPrimary: Colors.black,
                           surface: AppColors.surface,
@@ -265,7 +265,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       '${DateFormat('dd MMMM yyyy').format(_birthDate)} ($age Tahun)',
                       style: GoogleFonts.inter(fontSize: 14, color: AppColors.textPrimary),
                     ),
-                    const Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
+                    Icon(Icons.calendar_month, color: AppColors.primary, size: 20),
                   ],
                 ),
               ),
@@ -311,7 +311,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                   value: _activityLevel,
                   isExpanded: true,
                   dropdownColor: AppColors.surfaceLight,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.primary),
+                  icon: Icon(Icons.keyboard_arrow_down, color: AppColors.primary),
                   items: _activityLabels.entries.map((e) {
                     return DropdownMenuItem<double>(
                       value: e.key,
@@ -430,7 +430,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       ),
                     ],
                   ),
-                  const Divider(color: AppColors.surfaceBorder, height: 28),
+                  Divider(color: AppColors.surfaceBorder, height: 28),
                   Text(
                     'Target Makronutrisi Presisi',
                     style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
@@ -574,15 +574,15 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.surfaceBorder),
+                borderSide: BorderSide(color: AppColors.surfaceBorder),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.surfaceBorder),
+                borderSide: BorderSide(color: AppColors.surfaceBorder),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                borderSide: BorderSide(color: AppColors.primary, width: 1.5),
               ),
             ),
             onChanged: (text) {

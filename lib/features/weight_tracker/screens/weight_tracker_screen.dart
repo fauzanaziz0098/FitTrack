@@ -31,7 +31,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.surfaceBorder),
+            side: BorderSide(color: AppColors.surfaceBorder),
           ),
           title: Text(
             existingLog != null ? 'Edit Timbangan' : 'Catat Berat Badan',
@@ -52,7 +52,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                       lastDate: DateTime.now(),
                       builder: (c, child) => Theme(
                         data: Theme.of(c).copyWith(
-                          colorScheme: const ColorScheme.dark(
+                          colorScheme: ColorScheme.dark(
                             primary: AppColors.primary,
                             onPrimary: Colors.black,
                             surface: AppColors.surface,
@@ -80,7 +80,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                           DateFormat('d MMMM yyyy').format(selectedDate),
                           style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary),
                         ),
-                        const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                        Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
                       ],
                     ),
                   ),
@@ -168,17 +168,17 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
         actions: [
           IconButton(
             tooltip: 'Tambah Data Timbangan',
-            icon: const Icon(Icons.add_circle, color: AppColors.primary),
+            icon: Icon(Icons.add_circle, color: AppColors.primary),
             onPressed: () => _openAddWeightDialog(),
           ),
         ],
       ),
       body: weightLogsAsync.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
-        error: (err, _) => Center(
-          child: Text('Error: $err', style: const TextStyle(color: AppColors.error)),
+        error: (_, _) => Center(
+          child: Text('Gagal memuat catatan berat badan.', style: TextStyle(color: AppColors.error)),
         ),
         data: (logs) {
           if (logs.isEmpty) {
@@ -188,7 +188,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.monitor_weight_outlined, size: 64, color: AppColors.textMuted),
+                    Icon(Icons.monitor_weight_outlined, size: 64, color: AppColors.textMuted),
                     const SizedBox(height: 16),
                     Text(
                       'Belum Ada Catatan Berat Badan',
@@ -326,7 +326,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                               color: AppColors.surfaceLight,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.monitor_weight_outlined, size: 18, color: AppColors.primary),
+                            child: Icon(Icons.monitor_weight_outlined, size: 18, color: AppColors.primary),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -357,7 +357,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted),
+                            icon: Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted),
                             onPressed: () async {
                               final confirm = await showDialog<bool>(
                                 context: context,

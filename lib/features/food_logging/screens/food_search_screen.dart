@@ -74,7 +74,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
         actions: [
           IconButton(
             tooltip: 'Tambah Custom Food',
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+            icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
             onPressed: () async {
               final created = await showDialog<LocalFood?>(
                 context: context,
@@ -99,10 +99,10 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
               },
               decoration: InputDecoration(
                 hintText: 'Cari makanan (ayam, telur, whey, dll)...',
-                prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
+                prefixIcon: Icon(Icons.search, color: AppColors.textMuted),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: AppColors.textMuted),
+                        icon: Icon(Icons.clear, color: AppColors.textMuted),
                         onPressed: () {
                           _searchController.clear();
                           ref.read(foodSearchQueryProvider.notifier).clear();
@@ -116,11 +116,11 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
           // Foods List
           Expanded(
             child: foodsAsync.when(
-              loading: () => const Center(
+              loading: () => Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
-              error: (err, _) => Center(
-                child: Text('Error memuat data: $err', style: const TextStyle(color: AppColors.error)),
+              error: (_, _) => Center(
+                child: Text('Gagal memuat daftar makanan.', style: TextStyle(color: AppColors.error)),
               ),
               data: (foods) {
                 if (foods.isEmpty) {
@@ -130,7 +130,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.search_off, size: 48, color: AppColors.textMuted),
+                          Icon(Icons.search_off, size: 48, color: AppColors.textMuted),
                           const SizedBox(height: 12),
                           Text(
                             'Makanan tidak ditemukan',
@@ -200,7 +200,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                                       ),
                                       if (food.isVerified) ...[
                                         const SizedBox(width: 6),
-                                        const Icon(Icons.verified, size: 16, color: AppColors.primary),
+                                        Icon(Icons.verified, size: 16, color: AppColors.primary),
                                       ],
                                     ],
                                   ),
@@ -228,7 +228,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 2),
-                                const Icon(Icons.add_circle_outline, size: 18, color: AppColors.textMuted),
+                                Icon(Icons.add_circle_outline, size: 18, color: AppColors.textMuted),
                               ],
                             ),
                           ],
@@ -302,7 +302,7 @@ class _PortionAdjusterSheetState extends ConsumerState<_PortionAdjusterSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: AppColors.error, content: Text('Gagal mencatat makanan: $e')),
+          SnackBar(backgroundColor: AppColors.error, content: const Text('Gagal mencatat makanan.')),
         );
       }
     } finally {

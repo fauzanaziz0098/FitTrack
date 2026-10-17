@@ -91,13 +91,13 @@ class MealSectionCard extends ConsumerWidget {
 
           // Logged Food Items List
           if (filteredLogs.isNotEmpty) ...[
-            const Divider(color: AppColors.surfaceBorder, height: 1),
+            Divider(color: AppColors.surfaceBorder, height: 1),
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: filteredLogs.length,
-              separatorBuilder: (_, _) => const Divider(color: AppColors.surfaceBorder, height: 1),
+              separatorBuilder: (_, _) => Divider(color: AppColors.surfaceBorder, height: 1),
               itemBuilder: (context, index) {
                 final item = filteredLogs[index];
                 return Padding(
@@ -136,7 +136,7 @@ class MealSectionCard extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, size: 18, color: AppColors.textMuted),
+                        icon: Icon(Icons.close, size: 18, color: AppColors.textMuted),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                         onPressed: () async {
@@ -192,7 +192,7 @@ class MealSectionCard extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.add, size: 16, color: AppColors.primary),
+                  Icon(Icons.add, size: 16, color: AppColors.primary),
                   const SizedBox(width: 6),
                   Text(
                     'Tambah Makanan',

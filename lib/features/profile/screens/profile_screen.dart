@@ -45,7 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.account_circle, size: 56, color: AppColors.textMuted),
+                        Icon(Icons.account_circle, size: 56, color: AppColors.textMuted),
                         const SizedBox(height: 12),
                         Text(
                           'Profil Lifter Belum Diatur',
@@ -96,7 +96,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: AppColors.primary.withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.fitness_center, color: AppColors.primary, size: 28),
+                            child: Icon(Icons.fitness_center, color: AppColors.primary, size: 28),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -138,7 +138,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      const Divider(color: AppColors.surfaceBorder, height: 1),
+                      Divider(color: AppColors.surfaceBorder, height: 1),
                       const SizedBox(height: 16),
 
                       // Metrics Grid
@@ -153,7 +153,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
 
                       const SizedBox(height: 16),
-                      const Divider(color: AppColors.surfaceBorder, height: 1),
+                      Divider(color: AppColors.surfaceBorder, height: 1),
                       const SizedBox(height: 16),
 
                       // Target Macros
@@ -184,8 +184,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (err, _) => Text('Error: $err'),
+              loading: () => Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              error: (_, _) => const Text('Gagal memuat profil.'),
             ),
             const SizedBox(height: 20),
 
@@ -302,9 +302,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           if (context.mounted) {
                             setState(() {});
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 backgroundColor: AppColors.surfaceLight,
-                                content: Text('Anda telah keluar dari akun.'),
+                                content: Text(
+                                  'Anda telah keluar dari akun.',
+                                  style: TextStyle(color: AppColors.textPrimary),
+                                ),
                               ),
                             );
                           }

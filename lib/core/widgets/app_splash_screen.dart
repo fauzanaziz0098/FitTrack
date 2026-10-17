@@ -34,7 +34,7 @@ class AppSplashScreen extends StatelessWidget {
                 child: Image.asset(
                   'assets/images/logo.jpeg',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => const Icon(
+                  errorBuilder: (_, _, _) => Icon(
                     Icons.fitness_center,
                     size: 48,
                     color: AppColors.primary,
@@ -63,7 +63,7 @@ class AppSplashScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 36),
-            const SizedBox(
+            SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(

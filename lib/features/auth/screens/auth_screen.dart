@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/supabase_constants.dart';
 import '../../../core/widgets/google_logo.dart';
 import '../providers/auth_provider.dart';
 
@@ -30,11 +29,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.length < 6) {
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: AppColors.error,
-          content: Text('Email harus valid dan password minimal 6 karakter.'),
+          content: Text('Email dan password tidak boleh kosong.'),
+        ),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: AppColors.error,
+          content: Text('Password minimal 6 karakter.'),
         ),
       );
       return;
@@ -47,22 +56,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         final res = await supabase.signUp(email: email, password: password);
         if (mounted) {
           if (res?.session != null) {
-            // Auto login jika email confirmation dimatikan di Supabase
             await ref.read(ironBiteRepositoryProvider).triggerFullSync();
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   backgroundColor: AppColors.primary,
-                  content: Text('Pendaftaran & Login berhasil! Akun cloud terhubung.'),
+                  content: const Text('Pendaftaran dan login berhasil.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 ),
               );
               if (Navigator.canPop(context)) Navigator.pop(context);
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
+              SnackBar(
                 backgroundColor: AppColors.primary,
-                content: Text('Pendaftaran berhasil! Silakan masuk dengan akun Anda.'),
+                content: const Text('Pendaftaran berhasil. Silakan masuk.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               ),
             );
             setState(() => _isSignUp = false);
@@ -73,9 +81,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         await ref.read(ironBiteRepositoryProvider).triggerFullSync();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               backgroundColor: AppColors.primary,
-              content: Text('Login berhasil! Data cloud tersinkronisasi.'),
+              content: const Text('Login berhasil.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             ),
           );
           if (Navigator.canPop(context)) Navigator.pop(context);
@@ -83,10 +91,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String msg = _isSignUp ? 'Pendaftaran gagal. Periksa data Anda.' : 'Email atau password salah.';
+        final errLower = e.toString().toLowerCase();
+        if (errLower.contains('network') || errLower.contains('socket') || errLower.contains('host')) {
+          msg = 'Gagal terhubung. Periksa koneksi internet.';
+        } else if (errLower.contains('already') || errLower.contains('registered')) {
+          msg = 'Email sudah terdaftar. Silakan masuk.';
+        } else if (errLower.contains('invalid login') || errLower.contains('invalid credentials')) {
+          msg = 'Email atau password salah.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
-            content: Text('Otentikasi gagal: $e'),
+            content: Text(msg),
           ),
         );
       }
@@ -99,32 +116,35 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseServiceProvider);
-
-      if (SupabaseConstants.googleWebClientId.isNotEmpty) {
-        // Native Google Sign-In (dialog akun langsung di dalam aplikasi)
-        final res = await supabase.signInWithGoogleNative();
-        if (res?.session != null) {
-          await ref.read(ironBiteRepositoryProvider).triggerFullSync();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: AppColors.primary,
-                content: Text('Login Google berhasil! Akun cloud terhubung.'),
-              ),
-            );
-            if (Navigator.canPop(context)) Navigator.pop(context);
-          }
+      // Langsung munculkan popup daftar akun Google di ponsel
+      final res = await supabase.signInWithGoogleNative();
+      if (res != null && res.session != null) {
+        await ref.read(ironBiteRepositoryProvider).triggerFullSync();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: AppColors.primary,
+              content: const Text('Login berhasil.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            ),
+          );
+          if (Navigator.canPop(context)) Navigator.pop(context);
         }
-      } else {
-        // Browser OAuth fallback
-        await supabase.signInWithGoogle();
       }
     } catch (e) {
       if (mounted) {
+        String msg = 'Login dibatalkan.';
+        final errLower = e.toString().toLowerCase();
+        if (errLower.contains('network') || errLower.contains('socket')) {
+          msg = 'Gagal terhubung. Periksa koneksi internet.';
+        } else if (errLower.contains('client id')) {
+          msg = 'Web Client ID Google belum terpasang di SupabaseConstants.';
+        } else if (errLower.contains('cancel') || errLower.contains('batal')) {
+          msg = 'Login Google dibatalkan.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
-            content: Text('Login Google gagal: $e'),
+            content: Text(msg),
           ),
         );
       }
@@ -165,7 +185,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   child: Image.asset(
                     'assets/images/logo.jpeg',
                     fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) => const Icon(
+                    errorBuilder: (_, _, _) => Icon(
                       Icons.fitness_center,
                       size: 40,
                       color: AppColors.primary,
@@ -198,7 +218,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email',
                 hintText: 'lifter@ironbite.app',
                 prefixIcon: Icon(Icons.email_outlined, color: AppColors.textMuted),
@@ -210,7 +230,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             TextField(
               controller: _passwordController,
               obscureText: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Password',
                 hintText: 'Minimal 6 karakter',
                 prefixIcon: Icon(Icons.lock_outline, color: AppColors.textMuted),
@@ -249,7 +269,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             // Divider ATAU
             Row(
               children: [
-                const Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
+                Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   child: Text(
@@ -262,7 +282,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ),
                   ),
                 ),
-                const Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
+                Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
               ],
             ),
             const SizedBox(height: 16),
@@ -273,7 +293,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               style: OutlinedButton.styleFrom(
                 backgroundColor: AppColors.surface,
                 foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.surfaceLight, width: 1.5),
+                side: BorderSide(color: AppColors.surfaceLight, width: 1.5),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -304,7 +324,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.security_outlined, size: 20, color: AppColors.primary),
+                  Icon(Icons.security_outlined, size: 20, color: AppColors.primary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(

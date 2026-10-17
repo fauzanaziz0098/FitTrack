@@ -102,7 +102,7 @@ class DashboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.chevron_left, color: AppColors.textSecondary),
+                      icon: Icon(Icons.chevron_left, color: AppColors.textSecondary),
                       onPressed: () {
                         ref.read(selectedDateProvider.notifier).prevDay();
                       },
@@ -117,7 +117,7 @@ class DashboardScreen extends ConsumerWidget {
                           builder: (context, child) {
                             return Theme(
                               data: Theme.of(context).copyWith(
-                                colorScheme: const ColorScheme.dark(
+                                colorScheme: ColorScheme.dark(
                                   primary: AppColors.primary,
                                   onPrimary: Colors.black,
                                   surface: AppColors.surface,
@@ -134,7 +134,7 @@ class DashboardScreen extends ConsumerWidget {
                       },
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
+                          Icon(Icons.calendar_today, size: 16, color: AppColors.primary),
                           const SizedBox(width: 8),
                           Text(
                             dateDisplay,
@@ -148,7 +148,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+                      icon: Icon(Icons.chevron_right, color: AppColors.textSecondary),
                       onPressed: () {
                         ref.read(selectedDateProvider.notifier).nextDay();
                       },
@@ -172,7 +172,7 @@ class DashboardScreen extends ConsumerWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.info_outline, color: AppColors.primary),
+                          Icon(Icons.info_outline, color: AppColors.primary),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -224,13 +224,13 @@ class DashboardScreen extends ConsumerWidget {
                   final profile = profileAsync.value;
                   return MacroProgressCard(profile: profile, summary: summary);
                 },
-                loading: () => const SizedBox(
+                loading: () => SizedBox(
                   height: 240,
                   child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
                 ),
-                error: (err, _) => Container(
+                error: (_, _) => Container(
                   padding: const EdgeInsets.all(16),
-                  child: Text('Error: $err', style: const TextStyle(color: AppColors.error)),
+                  child: Text('Gagal memuat ringkasan harian.', style: TextStyle(color: AppColors.error)),
                 ),
               ),
 
@@ -291,14 +291,14 @@ class DashboardScreen extends ConsumerWidget {
                     ],
                   );
                 },
-                loading: () => const Center(
+                loading: () => Center(
                   child: Padding(
-                    padding: EdgeInsets.all(32.0),
+                    padding: const EdgeInsets.all(32.0),
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 ),
-                error: (err, _) => Center(
-                  child: Text('Error: $err', style: const TextStyle(color: AppColors.error)),
+                error: (_, _) => Center(
+                  child: Text('Gagal memuat jadwal makan.', style: TextStyle(color: AppColors.error)),
                 ),
               ),
             ],

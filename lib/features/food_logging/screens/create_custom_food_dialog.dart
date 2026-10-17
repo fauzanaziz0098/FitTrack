@@ -56,7 +56,7 @@ class _CreateCustomFoodDialogState extends ConsumerState<CreateCustomFoodDialog>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(backgroundColor: AppColors.error, content: Text('Gagal membuat makanan: $e')),
+          SnackBar(backgroundColor: AppColors.error, content: const Text('Gagal menambahkan makanan.')),
         );
       }
     } finally {
@@ -70,7 +70,7 @@ class _CreateCustomFoodDialogState extends ConsumerState<CreateCustomFoodDialog>
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: const BorderSide(color: AppColors.surfaceBorder),
+        side: BorderSide(color: AppColors.surfaceBorder),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -92,7 +92,7 @@ class _CreateCustomFoodDialogState extends ConsumerState<CreateCustomFoodDialog>
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.textMuted),
+                    icon: Icon(Icons.close, color: AppColors.textMuted),
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -183,7 +183,7 @@ class _CreateCustomFoodDialogState extends ConsumerState<CreateCustomFoodDialog>
               TextFormField(
                 controller: _barcodeController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Kode Barcode (Opsional)',
                   hintText: '899xxxxxxxx',
                   prefixIcon: Icon(Icons.qr_code, size: 20, color: AppColors.textMuted),

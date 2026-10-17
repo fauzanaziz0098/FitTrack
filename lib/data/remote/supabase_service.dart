@@ -91,7 +91,7 @@ class SupabaseService {
     String? iosClientId,
   }) async {
     final cl = client;
-    if (cl == null) throw Exception('Supabase belum terhubung. Periksa konfigurasi URL & Key.');
+    if (cl == null) throw Exception('Supabase belum terhubung. Periksa koneksi internet.');
 
     final effectiveWebClientId = (webClientId != null && webClientId.isNotEmpty)
         ? webClientId
@@ -101,19 +101,13 @@ class SupabaseService {
         ? iosClientId
         : SupabaseConstants.googleIosClientId;
 
-    if (effectiveWebClientId.isEmpty) {
-      throw Exception(
-        'Web Client ID belum dikonfigurasi di SupabaseConstants.googleWebClientId.\n'
-        'Salin Web Client ID dari Google Cloud Console dan tempel ke SupabaseConstants.',
-      );
-    }
-
     final googleSignIn = GoogleSignIn(
-      serverClientId: effectiveWebClientId,
+      serverClientId: effectiveWebClientId.isNotEmpty ? effectiveWebClientId : null,
       clientId: effectiveIosClientId.isNotEmpty ? effectiveIosClientId : null,
       scopes: const ['email', 'profile'],
     );
 
+    // Langsung munculkan popup daftar akun Google di ponsel
     final googleUser = await googleSignIn.signIn();
     if (googleUser == null) {
       // User membatalkan dialog akun Google
@@ -125,7 +119,10 @@ class SupabaseService {
     final accessToken = googleAuth.accessToken;
 
     if (idToken == null) {
-      throw Exception('Gagal mendapatkan ID Token dari Google Play Services.');
+      if (effectiveWebClientId.isEmpty) {
+        throw Exception('Web Client ID belum dikonfigurasi di SupabaseConstants.');
+      }
+      throw Exception('Gagal mendapatkan token akun Google.');
     }
 
     return await cl.auth.signInWithIdToken(
@@ -141,7 +138,7 @@ class SupabaseService {
     if (cl == null) throw Exception('Supabase belum terhubung. Periksa konfigurasi URL & Key.');
     return await cl.auth.signInWithOAuth(
       OAuthProvider.google,
-      redirectTo: kIsWeb ? null : 'io.supabase.fittrack://login-callback',
+      redirectTo: kIsWeb ? null : 'io.supabase.ironbite://login-callback',
       authScreenLaunchMode: LaunchMode.externalApplication,
     );
   }

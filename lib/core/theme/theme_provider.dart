@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/app_colors.dart';
 
 class AppAccent {
   final String id;
@@ -111,6 +112,7 @@ class ThemeNotifier extends Notifier<ThemeState> {
       }
 
       final accent = AppAccents.fromId(accentId);
+      _syncAppColors(mode, accent.color);
       state = ThemeState(themeMode: mode, accent: accent);
     } catch (e) {
       debugPrint('[Theme] Error loading theme preferences: $e');
@@ -118,6 +120,7 @@ class ThemeNotifier extends Notifier<ThemeState> {
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
+    _syncAppColors(mode, state.accent.color);
     state = state.copyWith(themeMode: mode);
 
     try {
@@ -133,12 +136,25 @@ class ThemeNotifier extends Notifier<ThemeState> {
   }
 
   Future<void> setAccent(AppAccent accent) async {
+    _syncAppColors(state.themeMode, accent.color);
     state = state.copyWith(accent: accent);
 
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyAccent, accent.id);
     } catch (_) {}
+  }
+
+  void _syncAppColors(ThemeMode mode, Color accentColor) {
+    AppColors.primary = accentColor;
+    if (mode == ThemeMode.light) {
+      AppColors.isDarkMode = false;
+    } else if (mode == ThemeMode.dark) {
+      AppColors.isDarkMode = true;
+    } else {
+      final platformBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+      AppColors.isDarkMode = (platformBrightness == Brightness.dark);
+    }
   }
 }
 

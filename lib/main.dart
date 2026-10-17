@@ -97,7 +97,7 @@ class _AppRootDecider extends ConsumerWidget {
       loading: () => const AppSplashScreen(),
       error: (err, _) => Scaffold(
         body: Center(
-          child: Text('Gagal memuat profil: $err'),
+          child: Text('Gagal memuat profil pengguna.'),
         ),
       ),
       data: (profile) {

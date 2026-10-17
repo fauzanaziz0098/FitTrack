@@ -127,7 +127,7 @@ class MacroProgressCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.flag_outlined, size: 14, color: AppColors.textMuted),
+                          Icon(Icons.flag_outlined, size: 14, color: AppColors.textMuted),
                           const SizedBox(width: 6),
                           Text(
                             'Batas Target: $targetCalories kkal',
@@ -147,7 +147,7 @@ class MacroProgressCard extends StatelessWidget {
           ),
 
           const SizedBox(height: 24),
-          const Divider(color: AppColors.surfaceBorder, height: 1),
+          Divider(color: AppColors.surfaceBorder, height: 1),
           const SizedBox(height: 18),
 
           // Macro Breakdown Progress Bars
@@ -225,7 +225,7 @@ class MacroProgressCard extends StatelessWidget {
                   ),
                   TextSpan(
                     text: ' / ${target.round()}g ($percent%)',
-                    style: const TextStyle(color: AppColors.textMuted),
+                    style: TextStyle(color: AppColors.textMuted),
                   ),
                 ],
               ),
