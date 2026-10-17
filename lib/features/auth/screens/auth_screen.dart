@@ -37,7 +37,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         return 'Gagal (ApiException 10): SHA-1 fingerprint atau package name Android belum sesuai di Google Cloud Console.';
       }
       if (errStr.contains('ApiException: 12500') || errStr.contains(': 12500')) {
-        return 'Gagal (ApiException 12500): Akun Google bermasalah atau Google Play Services perangkat perlu diperbarui.';
+        return 'Gagal (ApiException 12500): Konfigurasi Google OAuth belum cocok. Pastikan Web Client ID diisi di SupabaseConstants dan SHA-1 terdaftar di Google Cloud Console.';
       }
       if (errStr.contains('ApiException: 12501') || errStr.contains(': 12501') || errLower.contains('sign_in_canceled')) {
         return 'Pemilihan akun Google dibatalkan.';
