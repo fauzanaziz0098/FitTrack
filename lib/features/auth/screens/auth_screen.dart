@@ -130,13 +130,30 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           children: [
             Center(
               child: Container(
-                padding: const EdgeInsets.all(16),
+                width: 80,
+                height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.cloud_sync_outlined, size: 48, color: AppColors.primary),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.jpeg',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(
+                      Icons.fitness_center,
+                      size: 40,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),

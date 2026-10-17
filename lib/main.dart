@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_splash_screen.dart';
 import 'data/remote/supabase_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/auth_screen.dart';
@@ -86,11 +87,7 @@ class _AppRootDecider extends ConsumerWidget {
     final profileAsync = ref.watch(currentProfileProvider);
 
     return profileAsync.when(
-      loading: () => const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFE5FE40)),
-        ),
-      ),
+      loading: () => const AppSplashScreen(),
       error: (err, _) => Scaffold(
         body: Center(
           child: Text('Gagal memuat profil: $err'),
