@@ -54,7 +54,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   content: Text('Pendaftaran & Login berhasil! Akun cloud terhubung.'),
                 ),
               );
-              Navigator.pop(context);
+              if (Navigator.canPop(context)) Navigator.pop(context);
             }
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +76,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               content: Text('Login berhasil! Data cloud tersinkronisasi.'),
             ),
           );
-          Navigator.pop(context);
+          if (Navigator.canPop(context)) Navigator.pop(context);
         }
       }
     } catch (e) {
@@ -98,7 +98,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(_isSignUp ? 'Buat Akun IronBite' : 'Masuk Akun Cloud'),
+        automaticallyImplyLeading: Navigator.canPop(context),
+        title: Text(_isSignUp ? 'Buat Akun IronBite' : 'Masuk Akun IronBite'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -118,7 +119,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Sinkronisasi Cloud Supabase',
+              _isSignUp ? 'Daftar Akun Lifter' : 'Selamat Datang di IronBite',
               style: GoogleFonts.outfit(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -128,7 +129,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              'Simpan profil, catatan nutrisi harian, dan timbangan berat badan dengan aman di server privat Supabase.',
+              _isSignUp
+                  ? 'Buat akun untuk memulai pelacakan nutrisi presisi dan progres fisik Anda.'
+                  : 'Masuk akun untuk mengakses dashboard dan mengontrol target kalori harian Anda.',
               style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -195,11 +198,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.offline_pin_outlined, size: 20, color: AppColors.primary),
+                  const Icon(Icons.security_outlined, size: 20, color: AppColors.primary),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Aplikasi tetap berfungsi offline penuh dengan Drift SQLite. Sinkronisasi berjalan otomatis saat online.',
+                      'Data profil, riwayat makan, dan timbangan tersimpan privat di Supabase Cloud serta tersinkronisasi offline di Drift SQLite.',
                       style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ),

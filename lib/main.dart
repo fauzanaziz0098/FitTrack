@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
 import 'data/remote/supabase_service.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/auth/screens/auth_screen.dart';
 import 'features/calculator/screens/tdee_calculator_screen.dart';
 import 'features/main_navigation_screen.dart';
 
@@ -75,6 +76,13 @@ class _AppRootDecider extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
+
+    // Jika belum login ke Supabase, tahan di layar Auth
+    if (currentUser == null) {
+      return const AuthScreen();
+    }
+
     final profileAsync = ref.watch(currentProfileProvider);
 
     return profileAsync.when(

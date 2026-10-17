@@ -89,3 +89,9 @@ final authStateProvider = StreamProvider<AuthState?>((ref) {
   if (!supabase.isInitialized) return Stream.value(null);
   return Supabase.instance.client.auth.onAuthStateChange;
 });
+
+// Current user provider (reactive to login/logout)
+final currentUserProvider = Provider<User?>((ref) {
+  final authState = ref.watch(authStateProvider);
+  return authState.value?.session?.user ?? SupabaseService.instance.currentUser;
+});
