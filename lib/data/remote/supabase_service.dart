@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/supabase_constants.dart';
@@ -84,7 +85,57 @@ class SupabaseService {
     return await cl.auth.signInWithPassword(email: email, password: password);
   }
 
-  /// Sign In with Google OAuth SSO
+  /// Native Google Sign-In (dialog akun langsung di dalam aplikasi tanpa membuka browser)
+  Future<AuthResponse?> signInWithGoogleNative({
+    String? webClientId,
+    String? iosClientId,
+  }) async {
+    final cl = client;
+    if (cl == null) throw Exception('Supabase belum terhubung. Periksa konfigurasi URL & Key.');
+
+    final effectiveWebClientId = (webClientId != null && webClientId.isNotEmpty)
+        ? webClientId
+        : SupabaseConstants.googleWebClientId;
+
+    final effectiveIosClientId = (iosClientId != null && iosClientId.isNotEmpty)
+        ? iosClientId
+        : SupabaseConstants.googleIosClientId;
+
+    if (effectiveWebClientId.isEmpty) {
+      throw Exception(
+        'Web Client ID belum dikonfigurasi di SupabaseConstants.googleWebClientId.\n'
+        'Salin Web Client ID dari Google Cloud Console dan tempel ke SupabaseConstants.',
+      );
+    }
+
+    final googleSignIn = GoogleSignIn(
+      serverClientId: effectiveWebClientId,
+      clientId: effectiveIosClientId.isNotEmpty ? effectiveIosClientId : null,
+      scopes: const ['email', 'profile'],
+    );
+
+    final googleUser = await googleSignIn.signIn();
+    if (googleUser == null) {
+      // User membatalkan dialog akun Google
+      return null;
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    final accessToken = googleAuth.accessToken;
+
+    if (idToken == null) {
+      throw Exception('Gagal mendapatkan ID Token dari Google Play Services.');
+    }
+
+    return await cl.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: accessToken,
+    );
+  }
+
+  /// Sign In with Google OAuth SSO (Browser fallback)
   Future<bool> signInWithGoogle() async {
     final cl = client;
     if (cl == null) throw Exception('Supabase belum terhubung. Periksa konfigurasi URL & Key.');

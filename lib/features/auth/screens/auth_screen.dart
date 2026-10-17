@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/supabase_constants.dart';
 import '../../../core/widgets/google_logo.dart';
 import '../providers/auth_provider.dart';
 
@@ -98,9 +99,26 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseServiceProvider);
-      await supabase.signInWithGoogle();
-      // Browser will open Google OAuth. Once authenticated, deep link returns to the app
-      // and authStateProvider triggers navigation to Dashboard automatically.
+
+      if (SupabaseConstants.googleWebClientId.isNotEmpty) {
+        // Native Google Sign-In (dialog akun langsung di dalam aplikasi)
+        final res = await supabase.signInWithGoogleNative();
+        if (res?.session != null) {
+          await ref.read(ironBiteRepositoryProvider).triggerFullSync();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: AppColors.primary,
+                content: Text('Login Google berhasil! Akun cloud terhubung.'),
+              ),
+            );
+            if (Navigator.canPop(context)) Navigator.pop(context);
+          }
+        }
+      } else {
+        // Browser OAuth fallback
+        await supabase.signInWithGoogle();
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
