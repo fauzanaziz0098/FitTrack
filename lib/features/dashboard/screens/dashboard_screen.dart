@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../calculator/screens/tdee_calculator_screen.dart';
 import '../widgets/macro_progress_card.dart';
@@ -56,10 +57,16 @@ class DashboardScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          // Theme Quick Switcher
+          IconButton(
+            tooltip: 'Ganti Tema',
+            icon: const Icon(Icons.palette_outlined),
+            onPressed: () => showThemeSelectorModal(context),
+          ),
           // Profile Target Quick Link
           IconButton(
             tooltip: 'Kalkulator TDEE',
-            icon: const Icon(Icons.tune, color: AppColors.primary),
+            icon: const Icon(Icons.tune),
             onPressed: () {
               Navigator.push(
                 context,

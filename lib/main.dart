@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'core/widgets/app_splash_screen.dart';
 import 'data/remote/supabase_service.dart';
 import 'features/auth/providers/auth_provider.dart';
@@ -51,10 +52,14 @@ class _IronBiteAppState extends ConsumerState<IronBiteApp> {
 
   @override
   Widget build(BuildContext context) {
+    final themeState = ref.watch(themeNotifierProvider);
+
     if (!_isDbReady) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme(themeState.accent.color),
+        darkTheme: AppTheme.darkTheme(themeState.accent.color),
+        themeMode: themeState.themeMode,
         home: const Scaffold(
           body: Center(
             child: CircularProgressIndicator(color: Color(0xFFE5FE40)),
@@ -66,7 +71,9 @@ class _IronBiteAppState extends ConsumerState<IronBiteApp> {
     return MaterialApp(
       title: 'IronBite - Lifter Nutrition & Progress',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme(themeState.accent.color),
+      darkTheme: AppTheme.darkTheme(themeState.accent.color),
+      themeMode: themeState.themeMode,
       home: const _AppRootDecider(),
     );
   }

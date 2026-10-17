@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/nutrition_calculator.dart';
+import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/screens/auth_screen.dart';
 import '../../calculator/screens/tdee_calculator_screen.dart';
@@ -185,6 +186,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
               loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
               error: (err, _) => Text('Error: $err'),
+            ),
+            const SizedBox(height: 20),
+
+            // Tampilan & Tema
+            Text(
+              'Tampilan & Tema',
+              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.surfaceBorder),
+              ),
+              child: const ThemeSelectorSection(showHeader: true),
             ),
             const SizedBox(height: 20),
 
