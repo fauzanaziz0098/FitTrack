@@ -101,11 +101,18 @@ class SupabaseService {
         ? iosClientId
         : SupabaseConstants.googleIosClientId;
 
+    final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
     final googleSignIn = GoogleSignIn(
       serverClientId: effectiveWebClientId.isNotEmpty ? effectiveWebClientId : null,
-      clientId: effectiveIosClientId.isNotEmpty ? effectiveIosClientId : null,
+      clientId: isIos && effectiveIosClientId.isNotEmpty ? effectiveIosClientId : null,
       scopes: const ['email', 'profile'],
     );
+
+    // Pastikan sesi lokal sebelumnya dibersihkan agar popup daftar akun selalu muncul
+    try {
+      await googleSignIn.signOut();
+    } catch (_) {}
 
     // Langsung munculkan popup daftar akun Google di ponsel
     final googleUser = await googleSignIn.signIn();

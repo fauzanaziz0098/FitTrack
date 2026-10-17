@@ -201,7 +201,32 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 8),
             content: Text(msg),
+            action: SnackBarAction(
+              label: 'Coba Web',
+              textColor: Colors.white,
+              onPressed: () => _handleGoogleBrowserSignIn(),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleGoogleBrowserSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final supabase = ref.read(supabaseServiceProvider);
+      await supabase.signInWithGoogle();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.error,
+            content: Text('Gagal membuka login web: $e'),
           ),
         );
       }

@@ -5,10 +5,9 @@ class SupabaseConstants {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwc2JmYXJ0bXJocnhkYm5hZW1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyMzQ3ODEsImV4cCI6MjEwNzgxMDc4MX0.M0-QeiVe65afA64nu1y7kMrbSZxvpJiAb829OV2x1qQ';
 
   // Google OAuth Web Client ID (digunakan sebagai serverClientId untuk native Android sign-in)
-  static const String googleWebClientId = '';
-
+  static const String googleWebClientId = '621368473254-pmot5csh7dipl3a4nhbfqsug2p32g635.apps.googleusercontent.com';
   // Google OAuth iOS Client ID
-  static const String googleIosClientId = '';
+  static const String googleIosClientId = '621368473254-0nj7np69maibfdr2fedrtohvejiven82.apps.googleusercontent.com';
 
   // Table names matching PRD PostgreSQL schema
   static const String profilesTable = 'profiles';

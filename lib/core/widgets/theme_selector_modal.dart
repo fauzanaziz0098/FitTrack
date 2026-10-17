@@ -98,22 +98,26 @@ class ThemeSelectorSection extends ConsumerWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Kustomisasi Tampilan',
-                    style: GoogleFonts.outfit(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kustomisasi Tampilan',
+                      style: GoogleFonts.outfit(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Ubah mode gelap/terang dan warna aksen aplikasi',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                ],
+                    Text(
+                      'Ubah mode gelap/terang dan warna aksen aplikasi',
+                      style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -189,38 +193,44 @@ class ThemeSelectorSection extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: AppAccents.all.map((accent) {
-            final isSelected = themeState.accent.id == accent.id;
-            return GestureDetector(
-              onTap: () => ref.read(themeNotifierProvider.notifier).setAccent(accent),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: accent.color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isSelected ? Colors.white : Colors.transparent,
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    if (isSelected)
-                      BoxShadow(
-                        color: accent.color.withValues(alpha: 0.5),
-                        blurRadius: 12,
-                        spreadRadius: 2,
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: AppAccents.all.map((accent) {
+              final isSelected = themeState.accent.id == accent.id;
+              return Padding(
+                padding: const EdgeInsets.only(right: 10.0),
+                child: GestureDetector(
+                  onTap: () => ref.read(themeNotifierProvider.notifier).setAccent(accent),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: accent.color,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isSelected ? Colors.white : Colors.transparent,
+                        width: 3,
                       ),
-                  ],
+                      boxShadow: [
+                        if (isSelected)
+                          BoxShadow(
+                            color: accent.color.withValues(alpha: 0.5),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                      ],
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 22, color: Colors.black)
+                        : null,
+                  ),
                 ),
-                child: isSelected
-                    ? const Icon(Icons.check, size: 22, color: Colors.black)
-                    : null,
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ),
         ),
       ],
     );
