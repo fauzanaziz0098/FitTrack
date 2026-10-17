@@ -120,9 +120,11 @@ class SupabaseService {
 
     if (idToken == null) {
       if (effectiveWebClientId.isEmpty) {
-        throw Exception('Web Client ID belum dikonfigurasi di SupabaseConstants.');
+        throw Exception(
+            'Web Client ID Google belum diisi di SupabaseConstants. Diperlukan Web Client ID agar Google menerbitkan ID Token.');
       }
-      throw Exception('Gagal mendapatkan token akun Google.');
+      throw Exception(
+          'Google tidak mengembalikan ID Token. Pastikan OAuth Client ID bertipe Web Application di Google Cloud Console sudah benar.');
     }
 
     return await cl.auth.signInWithIdToken(

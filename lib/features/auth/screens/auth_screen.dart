@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/google_logo.dart';
 import '../providers/auth_provider.dart';
@@ -23,6 +25,64 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  String _getDetailedAuthErrorMessage(dynamic error, {required bool isGoogle}) {
+    final errStr = error.toString();
+    final errLower = errStr.toLowerCase();
+
+    if (isGoogle) {
+      // 1. Google Play Services ApiException Codes
+      if (errStr.contains('ApiException: 10') || errStr.contains(': 10') || errLower.contains('developer_error')) {
+        return 'Gagal (ApiException 10): SHA-1 fingerprint atau package name Android belum sesuai di Google Cloud Console.';
+      }
+      if (errStr.contains('ApiException: 12500') || errStr.contains(': 12500')) {
+        return 'Gagal (ApiException 12500): Akun Google bermasalah atau Google Play Services perangkat perlu diperbarui.';
+      }
+      if (errStr.contains('ApiException: 12501') || errStr.contains(': 12501') || errLower.contains('sign_in_canceled')) {
+        return 'Pemilihan akun Google dibatalkan.';
+      }
+      if (errStr.contains('ApiException: 7') || errStr.contains(': 7') || errLower.contains('network_error')) {
+        return 'Gagal terhubung ke Google. Periksa koneksi internet Anda.';
+      }
+
+      // 2. Web Client ID & Token errors
+      if (errLower.contains('web client id') || (errLower.contains('client id') && errLower.contains('supabaseconstants'))) {
+        return 'Web Client ID Google belum diisi di SupabaseConstants.';
+      }
+      if (errLower.contains('id token') || errLower.contains('token akun google')) {
+        return 'Gagal mendapatkan ID Token dari Google. Pastikan Web Client ID valid.';
+      }
+
+      // 3. PlatformException
+      if (error is PlatformException) {
+        final detail = error.message ?? error.code;
+        return 'Google Sign-In gagal: $detail';
+      }
+    }
+
+    // Supabase Auth Exceptions
+    if (error is AuthException) {
+      if (errLower.contains('invalid login') || errLower.contains('invalid credentials')) {
+        return 'Email atau password salah.';
+      }
+      if (errLower.contains('already') || errLower.contains('registered')) {
+        return 'Email sudah terdaftar. Silakan masuk.';
+      }
+      if (errLower.contains('provider') && errLower.contains('disabled')) {
+        return 'Google Auth Provider belum diaktifkan di dashboard Supabase.';
+      }
+      return 'Gagal autentikasi Supabase: ${error.message}';
+    }
+
+    // Network / Socket errors
+    if (errLower.contains('network') || errLower.contains('socket') || errLower.contains('failed host lookup')) {
+      return 'Gagal terhubung. Periksa koneksi internet Anda.';
+    }
+
+    // General fallback: clean exception prefix and show actual reason
+    final clean = errStr.replaceAll(RegExp(r'^(Exception:\s*|Error:\s*)'), '').trim();
+    return clean.isNotEmpty ? 'Gagal: $clean' : 'Terjadi kesalahan saat masuk.';
   }
 
   Future<void> _handleAuth() async {
@@ -91,15 +151,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       }
     } catch (e) {
       if (mounted) {
-        String msg = _isSignUp ? 'Pendaftaran gagal. Periksa data Anda.' : 'Email atau password salah.';
-        final errLower = e.toString().toLowerCase();
-        if (errLower.contains('network') || errLower.contains('socket') || errLower.contains('host')) {
-          msg = 'Gagal terhubung. Periksa koneksi internet.';
-        } else if (errLower.contains('already') || errLower.contains('registered')) {
-          msg = 'Email sudah terdaftar. Silakan masuk.';
-        } else if (errLower.contains('invalid login') || errLower.contains('invalid credentials')) {
-          msg = 'Email atau password salah.';
-        }
+        final msg = _getDetailedAuthErrorMessage(e, isGoogle: false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
@@ -116,9 +168,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     setState(() => _isLoading = true);
     try {
       final supabase = ref.read(supabaseServiceProvider);
-      // Langsung munculkan popup daftar akun Google di ponsel
+      // Munculkan popup daftar akun Google di ponsel
       final res = await supabase.signInWithGoogleNative();
-      if (res != null && res.session != null) {
+      if (res == null) {
+        // Pengguna menutup atau membatalkan dialog pemilihan akun
+        return;
+      }
+      if (res.session != null) {
         await ref.read(ironBiteRepositoryProvider).triggerFullSync();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -129,18 +185,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           );
           if (Navigator.canPop(context)) Navigator.pop(context);
         }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              backgroundColor: AppColors.error,
+              content: Text('Gagal membuat sesi login di Supabase.'),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
-        String msg = 'Login dibatalkan.';
-        final errLower = e.toString().toLowerCase();
-        if (errLower.contains('network') || errLower.contains('socket')) {
-          msg = 'Gagal terhubung. Periksa koneksi internet.';
-        } else if (errLower.contains('client id')) {
-          msg = 'Web Client ID Google belum terpasang di SupabaseConstants.';
-        } else if (errLower.contains('cancel') || errLower.contains('batal')) {
-          msg = 'Login Google dibatalkan.';
-        }
+        final msg = _getDetailedAuthErrorMessage(e, isGoogle: true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.error,
