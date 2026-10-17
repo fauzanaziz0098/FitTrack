@@ -76,6 +76,17 @@ class SupabaseService {
     return await cl.auth.signInWithPassword(email: email, password: password);
   }
 
+  /// Sign In with Google OAuth SSO
+  Future<bool> signInWithGoogle() async {
+    final cl = client;
+    if (cl == null) throw Exception('Supabase belum terhubung. Periksa konfigurasi URL & Key.');
+    return await cl.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: kIsWeb ? null : 'io.supabase.fittrack://login-callback',
+      authScreenLaunchMode: LaunchMode.externalApplication,
+    );
+  }
+
   /// Sign Out
   Future<void> signOut() async {
     final cl = client;

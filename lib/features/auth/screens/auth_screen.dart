@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/google_logo.dart';
 import '../providers/auth_provider.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -85,6 +86,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           SnackBar(
             backgroundColor: AppColors.error,
             content: Text('Otentikasi gagal: $e'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final supabase = ref.read(supabaseServiceProvider);
+      await supabase.signInWithGoogle();
+      // Browser will open Google OAuth. Once authenticated, deep link returns to the app
+      // and authStateProvider triggers navigation to Dashboard automatically.
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.error,
+            content: Text('Login Google gagal: $e'),
           ),
         );
       }
@@ -185,6 +207,55 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     ? 'Sudah punya akun? Masuk di sini'
                     : 'Belum punya akun? Daftar gratis sekarang',
                 style: GoogleFonts.inter(fontSize: 13, color: AppColors.primary),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Divider ATAU
+            Row(
+              children: [
+                const Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Text(
+                    'ATAU',
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textMuted,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                const Expanded(child: Divider(color: AppColors.surfaceLight, thickness: 1)),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Google SSO Button
+            OutlinedButton(
+              onPressed: _isLoading ? null : _handleGoogleSignIn,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: AppColors.surface,
+                foregroundColor: AppColors.textPrimary,
+                side: const BorderSide(color: AppColors.surfaceLight, width: 1.5),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const GoogleLogo(size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Lanjutkan dengan Google',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
             ),
 
