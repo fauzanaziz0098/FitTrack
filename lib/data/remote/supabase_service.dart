@@ -12,9 +12,10 @@ class SupabaseService {
   bool get isInitialized => _isInitialized;
 
   SupabaseClient? get client {
-    if (!_isInitialized) return null;
     try {
-      return Supabase.instance.client;
+      final cl = Supabase.instance.client;
+      _isInitialized = true;
+      return cl;
     } catch (_) {
       return null;
     }
@@ -25,17 +26,24 @@ class SupabaseService {
 
   /// Initialize Supabase with stored or default URL and AnonKey
   Future<bool> initialize() async {
+    String url = SupabaseConstants.defaultUrl;
+    String anonKey = SupabaseConstants.defaultAnonKey;
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      final url = prefs.getString('supabase_url') ?? SupabaseConstants.defaultUrl;
-      final anonKey = prefs.getString('supabase_anon_key') ?? SupabaseConstants.defaultAnonKey;
+      url = prefs.getString('supabase_url') ?? url;
+      anonKey = prefs.getString('supabase_anon_key') ?? anonKey;
+    } catch (e) {
+      debugPrint('[Supabase] SharedPreferences lookup error: $e. Using default constants.');
+    }
 
-      if (url.isEmpty || anonKey.isEmpty || url.contains('xyzcompany')) {
-        debugPrint('[Supabase] Running in local/offline-first demo mode (Placeholder Supabase credentials)');
-        _isInitialized = false;
-        return false;
-      }
+    if (url.isEmpty || anonKey.isEmpty || url.contains('xyzcompany')) {
+      debugPrint('[Supabase] Running in local/offline-first demo mode (Placeholder Supabase credentials)');
+      _isInitialized = false;
+      return false;
+    }
 
+    try {
       await Supabase.initialize(
         url: url,
         // ignore: deprecated_member_use
