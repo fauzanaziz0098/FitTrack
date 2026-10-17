@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/local/app_database.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../food_logging/screens/food_search_screen.dart';
+import '../../food_logging/screens/food_camera_scan_sheet.dart';
 
 class MealSectionCard extends ConsumerWidget {
   final String mealType; // 'breakfast', 'lunch', 'dinner', 'snack'
@@ -172,38 +173,71 @@ class MealSectionCard extends ConsumerWidget {
             ),
           ],
 
-          // Add Food Button
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FoodSearchScreen(mealType: mealType),
-                ),
-              );
-            },
-            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceLight.withValues(alpha: 0.5),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 16, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Tambah Makanan',
-                    style: GoogleFonts.outfit(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary,
+          // Action Buttons: Manual Search & AI Camera Scan
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surfaceLight.withValues(alpha: 0.5),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FoodSearchScreen(mealType: mealType),
+                        ),
+                      );
+                    },
+                    borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(18)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Cari Makanan',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Container(width: 1, height: 24, color: AppColors.surfaceBorder),
+                Expanded(
+                  child: InkWell(
+                    onTap: () => FoodCameraScanSheet.show(context, mealType: mealType),
+                    borderRadius: const BorderRadius.only(bottomRight: Radius.circular(18)),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.camera_alt_outlined, size: 16, color: AppColors.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Scan Foto AI',
+                            style: GoogleFonts.outfit(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

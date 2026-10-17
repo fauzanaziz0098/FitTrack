@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../data/local/app_database.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'create_custom_food_dialog.dart';
+import 'food_camera_scan_sheet.dart';
 
 class FoodSearchScreen extends ConsumerStatefulWidget {
   final String mealType; // 'breakfast', 'lunch', 'dinner', 'snack'
@@ -72,6 +73,11 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Scan Foto Makanan (AI)',
+            icon: Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+            onPressed: () => FoodCameraScanSheet.show(context, mealType: widget.mealType),
+          ),
           IconButton(
             tooltip: 'Tambah Custom Food',
             icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
