@@ -91,11 +91,15 @@ class IronBiteRepository {
   // ==================== PROFILE METHODS ====================
 
   Stream<LocalProfile?> watchCurrentProfile() {
-    return (db.select(db.localProfiles)..limit(1)).watchSingleOrNull();
+    return (db.select(db.localProfiles)
+          ..where((tbl) => tbl.id.equals(currentUserId)))
+        .watchSingleOrNull();
   }
 
   Future<LocalProfile?> getCurrentProfile() async {
-    return await (db.select(db.localProfiles)..limit(1)).getSingleOrNull();
+    return await (db.select(db.localProfiles)
+          ..where((tbl) => tbl.id.equals(currentUserId)))
+        .getSingleOrNull();
   }
 
   Future<void> saveProfile({
@@ -132,6 +136,13 @@ class IronBiteRepository {
 
     await db.into(db.localProfiles).insertOnConflictUpdate(companion);
 
+    // Hapus data profile guest lama jika user sekarang sudah login
+    if (profileId != 'local_lifter_user') {
+      try {
+        await (db.delete(db.localProfiles)..where((tbl) => tbl.id.equals('local_lifter_user'))).go();
+      } catch (_) {}
+    }
+
     // Also record initial weight in weight logs for today
     await logWeight(weightKg: currentWeightKg, date: now, notes: 'Target awal profil');
 
@@ -143,6 +154,7 @@ class IronBiteRepository {
 
   Stream<List<LocalFood>> watchFoods({String? query}) {
     final select = db.select(db.localFoods);
+    select.where((tbl) => tbl.userId.isNull() | tbl.userId.equals(currentUserId));
     if (query != null && query.trim().isNotEmpty) {
       select.where((tbl) => tbl.name.contains(query.trim()));
     }
@@ -152,6 +164,7 @@ class IronBiteRepository {
 
   Future<List<LocalFood>> getFoods({String? query}) async {
     final select = db.select(db.localFoods);
+    select.where((tbl) => tbl.userId.isNull() | tbl.userId.equals(currentUserId));
     if (query != null && query.trim().isNotEmpty) {
       select.where((tbl) => tbl.name.contains(query.trim()));
     }
@@ -201,7 +214,7 @@ class IronBiteRepository {
   Stream<List<LocalMealLog>> watchMealLogsForDate(DateTime date) {
     final normalized = _normalizeDate(date);
     return (db.select(db.localMealLogs)
-          ..where((tbl) => tbl.loggedDate.equals(normalized))
+          ..where((tbl) => tbl.loggedDate.equals(normalized) & tbl.userId.equals(currentUserId))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.createdAt)]))
         .watch();
   }
@@ -274,6 +287,7 @@ class IronBiteRepository {
 
   Stream<List<LocalWeightLog>> watchWeightLogs() {
     return (db.select(db.localWeightLogs)
+          ..where((tbl) => tbl.userId.equals(currentUserId))
           ..orderBy([(tbl) => OrderingTerm.asc(tbl.loggedDate)]))
         .watch();
   }
@@ -322,6 +336,101 @@ class IronBiteRepository {
   Future<void> deleteWeightLog(String id) async {
     await (db.delete(db.localWeightLogs)..where((tbl) => tbl.id.equals(id))).go();
     unawaited(supabase.deleteWeightLog(id));
+  }
+
+  /// Membersihkan semua data lokal user saat logout agar akun berikutnya tidak melihat data akun sebelumnya
+  Future<void> clearLocalUserData() async {
+    try {
+      await db.delete(db.localProfiles).go();
+      await db.delete(db.localWeightLogs).go();
+      await db.delete(db.localMealLogs).go();
+      await (db.delete(db.localFoods)..where((tbl) => tbl.userId.isNotNull())).go();
+      debugPrint('[IronBite] Data lokal berhasil dibersihkan saat logout.');
+    } catch (e) {
+      debugPrint('[IronBite] Error saat clearLocalUserData: $e');
+    }
+  }
+
+  /// Menarik data spesifik user dari cloud Supabase ke database lokal (RLS compliant)
+  Future<void> syncUserDataFromRemote() async {
+    if (!supabase.isInitialized || supabase.currentUser == null) return;
+    final userId = currentUserId;
+
+    try {
+      debugPrint('[IronBite] Mengambil data user dari Supabase untuk user: $userId');
+
+      // 1. Ambil profile remote
+      final remoteProfile = await supabase.fetchUserProfile(userId);
+      if (remoteProfile != null) {
+        final birthDate = DateTime.tryParse(remoteProfile['birth_date']?.toString() ?? '') ??
+            DateTime.now().subtract(const Duration(days: 365 * 25));
+        final updatedAt = DateTime.tryParse(remoteProfile['updated_at']?.toString() ?? '') ?? DateTime.now();
+
+        await db.into(db.localProfiles).insertOnConflictUpdate(
+          LocalProfilesCompanion.insert(
+            id: userId,
+            gender: remoteProfile['gender']?.toString() ?? 'male',
+            birthDate: birthDate,
+            heightCm: (remoteProfile['height_cm'] as num?)?.toDouble() ?? 170.0,
+            currentWeightKg: (remoteProfile['current_weight_kg'] as num?)?.toDouble() ?? 70.0,
+            activityLevel: (remoteProfile['activity_level'] as num?)?.toDouble() ?? 1.55,
+            goal: remoteProfile['goal']?.toString() ?? 'bulk',
+            calorieTarget: (remoteProfile['calorie_target'] as num?)?.toInt() ?? 2500,
+            proteinTargetG: (remoteProfile['protein_target_g'] as num?)?.toDouble() ?? 150.0,
+            carbsTargetG: (remoteProfile['carbs_target_g'] as num?)?.toDouble() ?? 250.0,
+            fatTargetG: (remoteProfile['fat_target_g'] as num?)?.toDouble() ?? 60.0,
+            createdAt: updatedAt,
+            updatedAt: updatedAt,
+            isSynced: const Value(true),
+          ),
+        );
+      }
+
+      // 2. Ambil catatan berat badan remote
+      final remoteWeightLogs = await supabase.fetchUserWeightLogs(userId);
+      for (final wl in remoteWeightLogs) {
+        final loggedDate = DateTime.tryParse(wl['logged_date']?.toString() ?? '') ?? DateTime.now();
+        final createdAt = DateTime.tryParse(wl['created_at']?.toString() ?? '') ?? loggedDate;
+        await db.into(db.localWeightLogs).insertOnConflictUpdate(
+          LocalWeightLogsCompanion.insert(
+            id: wl['id'] as String,
+            userId: userId,
+            weightKg: (wl['weight_kg'] as num).toDouble(),
+            loggedDate: loggedDate,
+            notes: Value(wl['notes']?.toString()),
+            createdAt: createdAt,
+            isSynced: const Value(true),
+          ),
+        );
+      }
+
+      // 3. Ambil catatan makanan remote
+      final remoteMealLogs = await supabase.fetchUserMealLogs(userId);
+      for (final ml in remoteMealLogs) {
+        final loggedDate = DateTime.tryParse(ml['logged_date']?.toString() ?? '') ?? DateTime.now();
+        final createdAt = DateTime.tryParse(ml['created_at']?.toString() ?? '') ?? loggedDate;
+        await db.into(db.localMealLogs).insertOnConflictUpdate(
+          LocalMealLogsCompanion.insert(
+            id: ml['id'] as String,
+            userId: userId,
+            foodId: ml['food_id'] as String,
+            foodName: ml['food_name']?.toString() ?? 'Makanan',
+            mealType: ml['meal_type'] as String,
+            servingQuantity: Value((ml['serving_quantity'] as num?)?.toDouble() ?? 1.0),
+            totalCalories: (ml['total_calories'] as num).toDouble(),
+            totalProteinG: (ml['total_protein_g'] as num).toDouble(),
+            totalCarbsG: (ml['total_carbs_g'] as num).toDouble(),
+            totalFatG: (ml['total_fat_g'] as num).toDouble(),
+            loggedDate: loggedDate,
+            createdAt: createdAt,
+            isSynced: const Value(true),
+          ),
+        );
+      }
+      debugPrint('[IronBite] Sinkronisasi data user dari Supabase selesai.');
+    } catch (e) {
+      debugPrint('[IronBite] Error saat syncUserDataFromRemote: $e');
+    }
   }
 
   // ==================== SYNC ENGINE ====================
@@ -422,6 +531,9 @@ class IronBiteRepository {
     }
 
     try {
+      // 0. Tarik data user terbaru dari remote
+      await syncUserDataFromRemote();
+
       // 1. Sync Profile
       final unsyncedProfile = await (db.select(db.localProfiles)
             ..where((tbl) => tbl.isSynced.equals(false)))

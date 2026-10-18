@@ -300,6 +300,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
 
                         if (confirm == true) {
+                          await ref.read(ironBiteRepositoryProvider).clearLocalUserData();
                           await supabase.signOut();
                           if (context.mounted) {
                             setState(() {});

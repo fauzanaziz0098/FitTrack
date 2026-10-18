@@ -79,12 +79,28 @@ class _IronBiteAppState extends ConsumerState<IronBiteApp> {
   }
 }
 
-class _AppRootDecider extends ConsumerWidget {
+class _AppRootDecider extends ConsumerStatefulWidget {
   const _AppRootDecider();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AppRootDecider> createState() => _AppRootDeciderState();
+}
+
+class _AppRootDeciderState extends ConsumerState<_AppRootDecider> {
+  String? _lastSyncedUserId;
+
+  @override
+  Widget build(BuildContext context) {
     final currentUser = ref.watch(currentUserProvider);
+
+    if (currentUser != null && currentUser.id != _lastSyncedUserId) {
+      _lastSyncedUserId = currentUser.id;
+      Future.microtask(() {
+        ref.read(ironBiteRepositoryProvider).syncUserDataFromRemote();
+      });
+    } else if (currentUser == null) {
+      _lastSyncedUserId = null;
+    }
 
     // Jika belum login ke Supabase, tahan di layar Auth
     if (currentUser == null) {
@@ -95,7 +111,7 @@ class _AppRootDecider extends ConsumerWidget {
 
     return profileAsync.when(
       loading: () => const AppSplashScreen(),
-      error: (err, _) => Scaffold(
+      error: (err, _) => const Scaffold(
         body: Center(
           child: Text('Gagal memuat profil pengguna.'),
         ),

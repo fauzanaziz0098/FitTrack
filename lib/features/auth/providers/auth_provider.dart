@@ -22,6 +22,7 @@ final ironBiteRepositoryProvider = Provider<IronBiteRepository>((ref) {
 
 // Profile Stream Provider
 final currentProfileProvider = StreamProvider<LocalProfile?>((ref) {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   return repo.watchCurrentProfile();
 });
@@ -45,6 +46,7 @@ final selectedDateProvider = NotifierProvider<SelectedDateNotifier, DateTime>(
 
 // Daily Summary Stream Provider for Selected Date
 final dailySummaryProvider = StreamProvider<DailySummary>((ref) {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   final date = ref.watch(selectedDateProvider);
   return repo.watchDailySummary(date);
@@ -52,6 +54,7 @@ final dailySummaryProvider = StreamProvider<DailySummary>((ref) {
 
 // Meal Logs Stream Provider for Selected Date
 final mealLogsProvider = StreamProvider<List<LocalMealLog>>((ref) {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   final date = ref.watch(selectedDateProvider);
   return repo.watchMealLogsForDate(date);
@@ -59,6 +62,7 @@ final mealLogsProvider = StreamProvider<List<LocalMealLog>>((ref) {
 
 // Weight Logs Stream Provider
 final weightLogsProvider = StreamProvider<List<LocalWeightLog>>((ref) {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   return repo.watchWeightLogs();
 });

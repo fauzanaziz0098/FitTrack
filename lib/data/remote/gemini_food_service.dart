@@ -64,13 +64,9 @@ class DetectedFoodItem {
 }
 
 class GeminiFoodService {
-  final GenerativeModel _model;
+  final String _apiKey;
 
-  GeminiFoodService({String? apiKey})
-      : _model = GenerativeModel(
-          model: GeminiConstants.visionModel,
-          apiKey: apiKey ?? GeminiConstants.apiKey,
-        );
+  GeminiFoodService({String? apiKey}) : _apiKey = apiKey ?? GeminiConstants.apiKey;
 
   /// Menganalisis gambar makanan dan mengembalikan estimasi item, gramasi, dan makro
   Future<List<DetectedFoodItem>> analyzeFoodImage(
@@ -101,48 +97,68 @@ KEMBALIKAN HANYA JSON MURNI tanpa teks pembuka atau markdown penutup, dengan for
 Jika di dalam foto tidak ada makanan, kembalikan array kosong: []
 ''';
 
-    try {
-      final response = await _model.generateContent([
-        Content.multi([
-          TextPart(prompt),
-          DataPart(mimeType, imageBytes),
-        ]),
-      ]);
+    Exception? lastError;
+    final modelsToTry = GeminiConstants.fallbackModels;
 
-      final text = response.text;
-      if (text == null || text.trim().isEmpty) {
-        throw Exception('Tidak ada respons teks dari Gemini.');
-      }
+    for (final modelName in modelsToTry) {
+      try {
+        debugPrint('[GeminiFoodService] Trying model $modelName...');
+        final model = GenerativeModel(
+          model: modelName,
+          apiKey: _apiKey,
+        );
 
-      // Bersihkan blok markdown ```json ... ``` jika model menyertakannya
-      String cleanJson = text.trim();
-      if (cleanJson.startsWith('```json')) {
-        cleanJson = cleanJson.substring(7);
-      } else if (cleanJson.startsWith('```')) {
-        cleanJson = cleanJson.substring(3);
-      }
-      if (cleanJson.endsWith('```')) {
-        cleanJson = cleanJson.substring(0, cleanJson.length - 3);
-      }
-      cleanJson = cleanJson.trim();
+        final response = await model.generateContent([
+          Content.multi([
+            TextPart(prompt),
+            DataPart(mimeType, imageBytes),
+          ]),
+        ]);
 
-      final dynamic decoded = jsonDecode(cleanJson);
-      if (decoded is List) {
-        return decoded
-            .map((item) => DetectedFoodItem.fromJson(item as Map<String, dynamic>))
-            .toList();
-      } else if (decoded is Map<String, dynamic> && decoded.containsKey('items')) {
-        final items = decoded['items'] as List;
-        return items
-            .map((item) => DetectedFoodItem.fromJson(item as Map<String, dynamic>))
-            .toList();
-      }
+        final text = response.text;
+        if (text == null || text.trim().isEmpty) {
+          throw Exception('Respons teks dari model $modelName kosong.');
+        }
 
-      return [];
-    } catch (e) {
-      debugPrint('[GeminiFoodService] Error analyzing food image: $e');
-      rethrow;
+        // Cari substring JSON array [...] atau object {...}
+        String cleanJson = text.trim();
+        final startIdx = cleanJson.indexOf('[');
+        final endIdx = cleanJson.lastIndexOf(']');
+        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+          cleanJson = cleanJson.substring(startIdx, endIdx + 1);
+        } else {
+          // Bersihkan markdown ```json
+          if (cleanJson.startsWith('```json')) {
+            cleanJson = cleanJson.substring(7);
+          } else if (cleanJson.startsWith('```')) {
+            cleanJson = cleanJson.substring(3);
+          }
+          if (cleanJson.endsWith('```')) {
+            cleanJson = cleanJson.substring(0, cleanJson.length - 3);
+          }
+        }
+        cleanJson = cleanJson.trim();
+
+        final dynamic decoded = jsonDecode(cleanJson);
+        if (decoded is List) {
+          return decoded
+              .map((item) => DetectedFoodItem.fromJson(item as Map<String, dynamic>))
+              .toList();
+        } else if (decoded is Map<String, dynamic> && decoded.containsKey('items')) {
+          final items = decoded['items'] as List;
+          return items
+              .map((item) => DetectedFoodItem.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+
+        return [];
+      } catch (e) {
+        debugPrint('[GeminiFoodService] Model $modelName failed: $e');
+        lastError = e is Exception ? e : Exception(e.toString());
+      }
     }
+
+    throw lastError ?? Exception('Semua model Gemini sedang tidak tersedia. Coba beberapa saat lagi.');
   }
 }
 

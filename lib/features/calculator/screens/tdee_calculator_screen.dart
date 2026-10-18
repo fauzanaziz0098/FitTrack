@@ -406,7 +406,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Text('TDEE', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+                          Text('TDEE (Maint.)', style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
                           Text(
                             '${plan.tdee.round()} kkal',
                             style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold),
@@ -417,7 +417,7 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('Target Harian', style: GoogleFonts.inter(fontSize: 12, color: AppColors.primary)),
+                          Text('Target Dashboard', style: GoogleFonts.inter(fontSize: 12, color: AppColors.primary)),
                           Text(
                             '${plan.targetCalories} kkal',
                             style: GoogleFonts.outfit(
@@ -430,7 +430,37 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
                       ),
                     ],
                   ),
-                  Divider(color: AppColors.surfaceBorder, height: 28),
+                  const SizedBox(height: 12),
+                  // Penjelasan relasi TDEE dan Target Harian
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.surfaceBorder),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _goal == FitnessGoal.bulk
+                                ? 'Surplus +350 kkal dari TDEE diterapkan untuk Lean Bulk agar massa otot bertambah. Angka ini yang menjadi target di Dashboard.'
+                                : _goal == FitnessGoal.cut
+                                    ? 'Defisit -400 kkal dari TDEE diterapkan untuk Cutting. Angka ini yang menjadi target di Dashboard.'
+                                    : 'Target kalori di Dashboard sama dengan TDEE pemeliharaan.',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: AppColors.surfaceBorder, height: 24),
                   Text(
                     'Target Makronutrisi Presisi',
                     style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),

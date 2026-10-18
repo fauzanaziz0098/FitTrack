@@ -127,14 +127,16 @@ class MacroProgressCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.flag_outlined, size: 14, color: AppColors.textMuted),
+                          Icon(Icons.flag_outlined, size: 14, color: profile != null ? AppColors.textMuted : AppColors.primary),
                           const SizedBox(width: 6),
                           Text(
-                            'Batas Target: $targetCalories kkal',
+                            profile != null
+                                ? 'Batas Target: $targetCalories kkal'
+                                : 'Target: Belum Diatur (Ketuk)',
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: profile != null ? AppColors.textSecondary : AppColors.primary,
                             ),
                           ),
                         ],

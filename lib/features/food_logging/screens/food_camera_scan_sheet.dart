@@ -91,9 +91,10 @@ class _FoodCameraScanSheetState extends ConsumerState<FoodCameraScanSheet> {
       });
     } catch (e) {
       if (!mounted) return;
+      final errorStr = e.toString().replaceAll('Exception: ', '').replaceAll('GenerativeAIException: ', '');
       setState(() {
         _isAnalyzing = false;
-        _errorMessage = 'Gagal menganalisis foto. Periksa koneksi internet Anda.';
+        _errorMessage = 'Gagal menganalisis foto: $errorStr';
       });
     }
   }
