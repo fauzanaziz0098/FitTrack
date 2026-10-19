@@ -208,6 +208,7 @@ class IronBiteRepository {
   Future<void> logWeight({
     required double weightKg,
     required DateTime date,
+    String? id,
     String? notes,
   }) async {
     if (currentUserId.isEmpty) {
@@ -216,18 +217,19 @@ class IronBiteRepository {
 
     final now = DateTime.now();
     final normalized = _normalizeDate(date);
-    final id = _uuid.v4();
+    final dateStr = normalized.toIso8601String().split('T').first;
 
-    final weightLog = WeightLog(
-      id: id,
-      userId: currentUserId,
-      weightKg: weightKg,
-      loggedDate: normalized,
-      notes: notes,
-      createdAt: now,
-    );
+    final data = <String, dynamic>{
+      'user_id': currentUserId,
+      'weight_kg': weightKg,
+      'logged_date': dateStr,
+      'notes': notes,
+    };
+    if (id != null && id.isNotEmpty) {
+      data['id'] = id;
+    }
 
-    await supabase.upsertWeightLog(weightLog.toJson());
+    await supabase.upsertWeightLog(data);
 
     // Update berat badan saat ini di profil pengguna
     final profile = await getProfile();

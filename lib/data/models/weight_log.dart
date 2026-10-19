@@ -17,8 +17,8 @@ class WeightLog {
 
   factory WeightLog.fromJson(Map<String, dynamic> json) {
     return WeightLog(
-      id: json['id'] as String,
-      userId: json['user_id'] as String? ?? '',
+      id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString() ?? '',
       weightKg: (json['weight_kg'] as num?)?.toDouble() ?? 0.0,
       loggedDate: DateTime.tryParse(json['logged_date']?.toString() ?? '') ?? DateTime.now(),
       notes: json['notes'] as String?,

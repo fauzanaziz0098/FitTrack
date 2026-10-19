@@ -120,12 +120,13 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final weight = double.tryParse(weightController.text);
+                final rawText = weightController.text.trim().replaceAll(',', '.');
+                final weight = double.tryParse(rawText);
                 if (weight == null || weight <= 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       backgroundColor: AppColors.error,
-                      content: Text('Masukkan angka berat badan yang valid'),
+                      content: Text('Masukkan angka berat badan yang valid (contoh: 72.5)'),
                     ),
                   );
                   return;
@@ -133,24 +134,37 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
 
                 final messenger = ScaffoldMessenger.of(context);
                 Navigator.pop(ctx);
-                await ref.read(ironBiteRepositoryProvider).logWeight(
-                  weightKg: weight,
-                  date: selectedDate,
-                  notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
-                );
-                ref.invalidate(weightLogsProvider);
-                ref.invalidate(currentProfileProvider);
-
-                if (mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      backgroundColor: AppColors.primary,
-                      content: Text(
-                        'Berat ${weight}kg berhasil dicatat!',
-                        style: GoogleFonts.outfit(color: Colors.black, fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                try {
+                  await ref.read(ironBiteRepositoryProvider).logWeight(
+                    weightKg: weight,
+                    date: selectedDate,
+                    id: existingLog?.id,
+                    notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
                   );
+                  ref.invalidate(weightLogsProvider);
+                  ref.invalidate(currentProfileProvider);
+
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        backgroundColor: AppColors.primary,
+                        content: Text(
+                          'Berat ${weight.toStringAsFixed(1)} kg berhasil dicatat!',
+                          style: GoogleFonts.outfit(color: Colors.black, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  debugPrint('[WeightTracker] Gagal mencatat berat: $e');
+                  if (mounted) {
+                    messenger.showSnackBar(
+                      SnackBar(
+                        backgroundColor: AppColors.error,
+                        content: Text('Gagal menyimpan timbangan: $e'),
+                      ),
+                    );
+                  }
                 }
               },
               child: const Text('Simpan'),
@@ -318,15 +332,18 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                   separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final log = logs.reversed.toList()[index];
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.surfaceBorder),
-                      ),
-                      child: Row(
-                        children: [
+                    return InkWell(
+                      onTap: () => _openAddWeightDialog(log),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.surfaceBorder),
+                        ),
+                        child: Row(
+                          children: [
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -366,6 +383,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                           IconButton(
                             icon: Icon(Icons.delete_outline, size: 18, color: AppColors.textMuted),
                             onPressed: () async {
+                              final messenger = ScaffoldMessenger.of(context);
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
@@ -387,16 +405,39 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                               );
 
                               if (confirm == true) {
-                                await ref.read(ironBiteRepositoryProvider).deleteWeightLog(log.id);
-                                ref.invalidate(weightLogsProvider);
-                                ref.invalidate(currentProfileProvider);
+                                try {
+                                  await ref.read(ironBiteRepositoryProvider).deleteWeightLog(log.id);
+                                  ref.invalidate(weightLogsProvider);
+                                  ref.invalidate(currentProfileProvider);
+                                  if (mounted) {
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: AppColors.primary,
+                                        content: const Text(
+                                          'Catatan timbangan berhasil dihapus.',
+                                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    messenger.showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: AppColors.error,
+                                        content: Text('Gagal menghapus: $e'),
+                                      ),
+                                    );
+                                  }
+                                }
                               }
                             },
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  );
+                },
                 ),
               ],
             ),

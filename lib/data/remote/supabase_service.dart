@@ -264,7 +264,10 @@ class SupabaseService {
   Future<void> upsertWeightLog(Map<String, dynamic> data) async {
     final cl = client;
     if (cl == null) return;
-    await cl.from(SupabaseConstants.weightLogsTable).upsert(data);
+    await cl.from(SupabaseConstants.weightLogsTable).upsert(
+      data,
+      onConflict: 'user_id,logged_date',
+    );
   }
 
   Future<void> deleteWeightLog(String id) async {
