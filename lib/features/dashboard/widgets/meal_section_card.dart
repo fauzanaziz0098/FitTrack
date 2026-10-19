@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/local/app_database.dart';
+import '../../../data/models/meal_log.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../food_logging/screens/food_search_screen.dart';
 import '../../food_logging/screens/food_camera_scan_sheet.dart';
@@ -11,7 +11,7 @@ class MealSectionCard extends ConsumerWidget {
   final String mealType; // 'breakfast', 'lunch', 'dinner', 'snack'
   final String title;
   final IconData icon;
-  final List<LocalMealLog> mealLogs;
+  final List<MealLog> mealLogs;
 
   const MealSectionCard({
     super.key,
@@ -163,6 +163,8 @@ class MealSectionCard extends ConsumerWidget {
 
                           if (confirm == true) {
                             await ref.read(ironBiteRepositoryProvider).deleteMealLog(item.id);
+                            ref.invalidate(mealLogsProvider);
+                            ref.invalidate(dailySummaryProvider);
                           }
                         },
                       ),

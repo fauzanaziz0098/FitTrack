@@ -50,6 +50,8 @@ class _CreateCustomFoodDialogState extends ConsumerState<CreateCustomFoodDialog>
         barcode: _barcodeController.text.trim().isEmpty ? null : _barcodeController.text.trim(),
       );
 
+      ref.invalidate(foodsListProvider);
+
       if (mounted) {
         Navigator.pop(context, createdFood);
       }

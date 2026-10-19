@@ -116,16 +116,18 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         final res = await supabase.signUp(email: email, password: password);
         if (mounted) {
           if (res?.session != null) {
-            await ref.read(ironBiteRepositoryProvider).triggerFullSync();
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.primary,
-                  content: const Text('Pendaftaran dan login berhasil.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                ),
-              );
-              if (Navigator.canPop(context)) Navigator.pop(context);
-            }
+            ref.invalidate(currentProfileProvider);
+            ref.invalidate(dailySummaryProvider);
+            ref.invalidate(mealLogsProvider);
+            ref.invalidate(weightLogsProvider);
+            ref.invalidate(foodsListProvider);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: AppColors.primary,
+                content: const Text('Pendaftaran dan login berhasil.', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            );
+            if (Navigator.canPop(context)) Navigator.pop(context);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -138,7 +140,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         }
       } else {
         await supabase.signIn(email: email, password: password);
-        await ref.read(ironBiteRepositoryProvider).triggerFullSync();
+        ref.invalidate(currentProfileProvider);
+        ref.invalidate(dailySummaryProvider);
+        ref.invalidate(mealLogsProvider);
+        ref.invalidate(weightLogsProvider);
+        ref.invalidate(foodsListProvider);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -175,7 +181,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
         return;
       }
       if (res.session != null) {
-        await ref.read(ironBiteRepositoryProvider).triggerFullSync();
+        ref.invalidate(currentProfileProvider);
+        ref.invalidate(dailySummaryProvider);
+        ref.invalidate(mealLogsProvider);
+        ref.invalidate(weightLogsProvider);
+        ref.invalidate(foodsListProvider);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -410,7 +420,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Data profil, riwayat makan, dan timbangan tersimpan privat di Supabase Cloud serta tersinkronisasi offline di Drift SQLite.',
+                      'Data profil, riwayat makan, dan timbangan tersimpan aman & privat di Supabase Cloud.',
                       style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ),

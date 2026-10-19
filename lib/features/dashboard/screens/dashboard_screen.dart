@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/theme_provider.dart';
+import '../../../core/widgets/empty_offline_state.dart';
 import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../calculator/screens/tdee_calculator_screen.dart';
@@ -84,7 +85,16 @@ class DashboardScreen extends ConsumerWidget {
         color: AppColors.primary,
         backgroundColor: AppColors.surface,
         onRefresh: () async {
-          await ref.read(ironBiteRepositoryProvider).triggerFullSync();
+          ref.invalidate(currentProfileProvider);
+          ref.invalidate(dailySummaryProvider);
+          ref.invalidate(mealLogsProvider);
+          try {
+            await Future.wait([
+              ref.read(dailySummaryProvider.future),
+              ref.read(mealLogsProvider.future),
+              ref.read(currentProfileProvider.future),
+            ]);
+          } catch (_) {}
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -299,8 +309,13 @@ class DashboardScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 ),
-                error: (_, _) => Center(
-                  child: Text('Gagal memuat jadwal makan.', style: TextStyle(color: AppColors.error)),
+                error: (_, _) => EmptyOfflineState(
+                  title: 'Data Tidak Tersedia (Offline)',
+                  message: 'Tidak dapat memuat jadwal makan dari cloud. Periksa koneksi internet Anda.',
+                  onRetry: () {
+                    ref.invalidate(mealLogsProvider);
+                    ref.invalidate(dailySummaryProvider);
+                  },
                 ),
               ),
             ],

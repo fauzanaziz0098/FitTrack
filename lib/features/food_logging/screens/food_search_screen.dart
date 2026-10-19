@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/local/app_database.dart';
+import '../../../core/widgets/empty_offline_state.dart';
+import '../../../data/models/food_item.dart';
 import '../../auth/providers/auth_provider.dart';
 import 'create_custom_food_dialog.dart';
 import 'food_camera_scan_sheet.dart';
@@ -39,7 +40,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
     super.dispose();
   }
 
-  void _showPortionSheet(LocalFood food) {
+  void _showPortionSheet(FoodItem food) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -82,7 +83,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
             tooltip: 'Tambah Custom Food',
             icon: Icon(Icons.add_circle_outline, color: AppColors.primary),
             onPressed: () async {
-              final created = await showDialog<LocalFood?>(
+              final created = await showDialog<FoodItem?>(
                 context: context,
                 builder: (_) => const CreateCustomFoodDialog(),
               );
@@ -125,8 +126,10 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
               loading: () => Center(
                 child: CircularProgressIndicator(color: AppColors.primary),
               ),
-              error: (_, _) => Center(
-                child: Text('Gagal memuat daftar makanan.', style: TextStyle(color: AppColors.error)),
+              error: (_, _) => EmptyOfflineState(
+                title: 'Koneksi Terputus',
+                message: 'Tidak dapat memuat database makanan dari server. Periksa koneksi internet Anda.',
+                onRetry: () => ref.invalidate(foodsListProvider),
               ),
               data: (foods) {
                 if (foods.isEmpty) {
@@ -153,7 +156,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
                             icon: const Icon(Icons.add, color: Colors.black),
                             label: const Text('Buat Makanan Kustom'),
                             onPressed: () async {
-                              final created = await showDialog<LocalFood?>(
+                              final created = await showDialog<FoodItem?>(
                                 context: context,
                                 builder: (_) => const CreateCustomFoodDialog(),
                               );
@@ -253,7 +256,7 @@ class _FoodSearchScreenState extends ConsumerState<FoodSearchScreen> {
 }
 
 class _PortionAdjusterSheet extends ConsumerStatefulWidget {
-  final LocalFood food;
+  final FoodItem food;
   final String mealType;
   final String mealTypeTitle;
 
@@ -291,6 +294,9 @@ class _PortionAdjusterSheetState extends ConsumerState<_PortionAdjusterSheet> {
         servingQuantity: _quantity,
         date: date,
       );
+
+      ref.invalidate(mealLogsProvider);
+      ref.invalidate(dailySummaryProvider);
 
       if (mounted) {
         Navigator.pop(context); // Close bottom sheet

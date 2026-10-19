@@ -99,6 +99,9 @@ class _TdeeCalculatorScreenState extends ConsumerState<TdeeCalculatorScreen> {
         fatTargetG: plan.targetFatG,
       );
 
+      ref.invalidate(currentProfileProvider);
+      ref.invalidate(dailySummaryProvider);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

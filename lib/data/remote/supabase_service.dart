@@ -160,18 +160,31 @@ class SupabaseService {
     }
   }
 
-  // --- Remote Database Methods for Sync Engine ---
+  // --- Remote Database Methods ---
 
-  Future<List<Map<String, dynamic>>> fetchGlobalFoods() async {
+  Future<List<Map<String, dynamic>>> fetchFoods({String? userId, String? query}) async {
     final cl = client;
     if (cl == null) return [];
     try {
-      final response = await cl.from(SupabaseConstants.foodsTable).select();
+      var q = cl.from(SupabaseConstants.foodsTable).select();
+      if (userId != null && userId.isNotEmpty) {
+        q = q.or('user_id.is.null,user_id.eq.$userId');
+      } else {
+        q = q.filter('user_id', 'is', 'null');
+      }
+      if (query != null && query.trim().isNotEmpty) {
+        q = q.ilike('name', '%${query.trim()}%');
+      }
+      final response = await q.order('name', ascending: true);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      debugPrint('[Supabase] fetchGlobalFoods error: $e');
+      debugPrint('[Supabase] fetchFoods error: $e');
       return [];
     }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchGlobalFoods() async {
+    return await fetchFoods();
   }
 
   Future<Map<String, dynamic>?> fetchUserProfile(String userId) async {
@@ -186,11 +199,21 @@ class SupabaseService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchUserMealLogs(String userId) async {
+  Future<List<Map<String, dynamic>>> fetchUserMealLogs(String userId, {DateTime? date}) async {
     final cl = client;
     if (cl == null) return [];
     try {
-      final response = await cl.from(SupabaseConstants.mealLogsTable).select().eq('user_id', userId);
+      var query = cl
+          .from(SupabaseConstants.mealLogsTable)
+          .select('*, foods(name)')
+          .eq('user_id', userId);
+
+      if (date != null) {
+        final dateStr = date.toIso8601String().split('T').first;
+        query = query.eq('logged_date', dateStr);
+      }
+
+      final response = await query.order('created_at', ascending: true);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       debugPrint('[Supabase] fetchUserMealLogs error: $e');
@@ -202,7 +225,11 @@ class SupabaseService {
     final cl = client;
     if (cl == null) return [];
     try {
-      final response = await cl.from(SupabaseConstants.weightLogsTable).select().eq('user_id', userId);
+      final response = await cl
+          .from(SupabaseConstants.weightLogsTable)
+          .select()
+          .eq('user_id', userId)
+          .order('logged_date', ascending: true);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       debugPrint('[Supabase] fetchUserWeightLogs error: $e');

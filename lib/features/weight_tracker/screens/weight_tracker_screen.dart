@@ -5,7 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/theme_provider.dart';
-import '../../../data/local/app_database.dart';
+import '../../../core/widgets/empty_offline_state.dart';
+import '../../../data/models/weight_log.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class WeightTrackerScreen extends ConsumerStatefulWidget {
@@ -16,7 +17,7 @@ class WeightTrackerScreen extends ConsumerStatefulWidget {
 }
 
 class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
-  void _openAddWeightDialog([LocalWeightLog? existingLog]) {
+  void _openAddWeightDialog([WeightLog? existingLog]) {
     final weightController = TextEditingController(
       text: existingLog != null ? existingLog.weightKg.toString() : '',
     );
@@ -137,6 +138,8 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
                   date: selectedDate,
                   notes: notesController.text.trim().isEmpty ? null : notesController.text.trim(),
                 );
+                ref.invalidate(weightLogsProvider);
+                ref.invalidate(currentProfileProvider);
 
                 if (mounted) {
                   messenger.showSnackBar(
@@ -179,8 +182,10 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
         loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.primary),
         ),
-        error: (_, _) => Center(
-          child: Text('Gagal memuat catatan berat badan.', style: TextStyle(color: AppColors.error)),
+        error: (_, _) => EmptyOfflineState(
+          title: 'Koneksi Terputus',
+          message: 'Tidak dapat memuat catatan berat badan dari server. Periksa koneksi internet Anda.',
+          onRetry: () => ref.invalidate(weightLogsProvider),
         ),
         data: (logs) {
           if (logs.isEmpty) {
@@ -383,6 +388,8 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
 
                               if (confirm == true) {
                                 await ref.read(ironBiteRepositoryProvider).deleteWeightLog(log.id);
+                                ref.invalidate(weightLogsProvider);
+                                ref.invalidate(currentProfileProvider);
                               }
                             },
                           ),
@@ -412,7 +419,7 @@ class _WeightTrackerScreenState extends ConsumerState<WeightTrackerScreen> {
     );
   }
 
-  Widget _buildWeightLineChart(List<LocalWeightLog> logs) {
+  Widget _buildWeightLineChart(List<WeightLog> logs) {
     final spots = <FlSpot>[];
     for (int i = 0; i < logs.length; i++) {
       spots.add(FlSpot(i.toDouble(), logs[i].weightKg));

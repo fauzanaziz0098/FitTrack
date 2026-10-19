@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/widgets/app_splash_screen.dart';
+import 'core/widgets/empty_offline_state.dart';
 import 'data/remote/supabase_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/auth/screens/auth_screen.dart';
@@ -79,28 +80,12 @@ class _IronBiteAppState extends ConsumerState<IronBiteApp> {
   }
 }
 
-class _AppRootDecider extends ConsumerStatefulWidget {
+class _AppRootDecider extends ConsumerWidget {
   const _AppRootDecider();
 
   @override
-  ConsumerState<_AppRootDecider> createState() => _AppRootDeciderState();
-}
-
-class _AppRootDeciderState extends ConsumerState<_AppRootDecider> {
-  String? _lastSyncedUserId;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentUser = ref.watch(currentUserProvider);
-
-    if (currentUser != null && currentUser.id != _lastSyncedUserId) {
-      _lastSyncedUserId = currentUser.id;
-      Future.microtask(() {
-        ref.read(ironBiteRepositoryProvider).syncUserDataFromRemote();
-      });
-    } else if (currentUser == null) {
-      _lastSyncedUserId = null;
-    }
 
     // Jika belum login ke Supabase, tahan di layar Auth
     if (currentUser == null) {
@@ -111,9 +96,13 @@ class _AppRootDeciderState extends ConsumerState<_AppRootDecider> {
 
     return profileAsync.when(
       loading: () => const AppSplashScreen(),
-      error: (err, _) => const Scaffold(
+      error: (err, _) => Scaffold(
         body: Center(
-          child: Text('Gagal memuat profil pengguna.'),
+          child: EmptyOfflineState(
+            title: 'Koneksi Terputus',
+            message: 'Gagal memuat profil pengguna dari server. Pastikan perangkat terhubung ke internet.',
+            onRetry: () => ref.invalidate(currentProfileProvider),
+          ),
         ),
       ),
       data: (profile) {

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/theme/theme_provider.dart';
 import '../../../core/utils/nutrition_calculator.dart';
+import '../../../core/widgets/empty_offline_state.dart';
 import '../../../core/widgets/theme_selector_modal.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../auth/screens/auth_screen.dart';
@@ -187,7 +188,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 );
               },
               loading: () => Center(child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (_, _) => const Text('Gagal memuat profil.'),
+              error: (_, _) => EmptyOfflineState(
+                title: 'Gagal Memuat Profil',
+                message: 'Pastikan Anda terhubung ke internet untuk melihat detail profil.',
+                onRetry: () => ref.invalidate(currentProfileProvider),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -300,8 +305,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
 
                         if (confirm == true) {
-                          await ref.read(ironBiteRepositoryProvider).clearLocalUserData();
                           await supabase.signOut();
+                          ref.invalidate(currentProfileProvider);
+                          ref.invalidate(dailySummaryProvider);
+                          ref.invalidate(mealLogsProvider);
+                          ref.invalidate(weightLogsProvider);
+                          ref.invalidate(foodsListProvider);
                           if (context.mounted) {
                             setState(() {});
                             ScaffoldMessenger.of(context).showSnackBar(

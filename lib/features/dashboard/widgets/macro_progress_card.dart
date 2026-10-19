@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../data/local/app_database.dart';
-import '../../../data/repositories/ironbite_repository.dart';
+import '../../../data/models/daily_summary.dart';
+import '../../../data/models/user_profile.dart';
 
 class MacroProgressCard extends StatelessWidget {
-  final LocalProfile? profile;
+  final UserProfile? profile;
   final DailySummary summary;
 
   const MacroProgressCard({

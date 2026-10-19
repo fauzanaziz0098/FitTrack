@@ -1,30 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../data/local/app_database.dart';
+import '../../../data/models/daily_summary.dart';
+import '../../../data/models/food_item.dart';
+import '../../../data/models/meal_log.dart';
+import '../../../data/models/user_profile.dart';
+import '../../../data/models/weight_log.dart';
 import '../../../data/remote/supabase_service.dart';
 import '../../../data/repositories/ironbite_repository.dart';
-
-final appDatabaseProvider = Provider<AppDatabase>((ref) {
-  final db = AppDatabase();
-  ref.onDispose(() => db.close());
-  return db;
-});
 
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService.instance;
 });
 
 final ironBiteRepositoryProvider = Provider<IronBiteRepository>((ref) {
-  final db = ref.watch(appDatabaseProvider);
   final supabase = ref.watch(supabaseServiceProvider);
-  return IronBiteRepository(db: db, supabase: supabase);
+  return IronBiteRepository(supabase: supabase);
 });
 
-// Profile Stream Provider
-final currentProfileProvider = StreamProvider<LocalProfile?>((ref) {
+// Profile Provider
+final currentProfileProvider = FutureProvider<UserProfile?>((ref) async {
   ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
-  return repo.watchCurrentProfile();
+  return await repo.getProfile();
 });
 
 // Selected Date Notifier for Dashboard
@@ -44,27 +41,27 @@ final selectedDateProvider = NotifierProvider<SelectedDateNotifier, DateTime>(
   SelectedDateNotifier.new,
 );
 
-// Daily Summary Stream Provider for Selected Date
-final dailySummaryProvider = StreamProvider<DailySummary>((ref) {
+// Daily Summary Provider for Selected Date
+final dailySummaryProvider = FutureProvider<DailySummary>((ref) async {
   ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   final date = ref.watch(selectedDateProvider);
-  return repo.watchDailySummary(date);
+  return await repo.getDailySummary(date);
 });
 
-// Meal Logs Stream Provider for Selected Date
-final mealLogsProvider = StreamProvider<List<LocalMealLog>>((ref) {
+// Meal Logs Provider for Selected Date
+final mealLogsProvider = FutureProvider<List<MealLog>>((ref) async {
   ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   final date = ref.watch(selectedDateProvider);
-  return repo.watchMealLogsForDate(date);
+  return await repo.getMealLogsForDate(date);
 });
 
-// Weight Logs Stream Provider
-final weightLogsProvider = StreamProvider<List<LocalWeightLog>>((ref) {
+// Weight Logs Provider
+final weightLogsProvider = FutureProvider<List<WeightLog>>((ref) async {
   ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
-  return repo.watchWeightLogs();
+  return await repo.getWeightLogs();
 });
 
 // Food Search Query Notifier
@@ -80,11 +77,12 @@ final foodSearchQueryProvider = NotifierProvider<FoodSearchQueryNotifier, String
   FoodSearchQueryNotifier.new,
 );
 
-// Foods Stream Provider with search query
-final foodsListProvider = StreamProvider<List<LocalFood>>((ref) {
+// Foods List Provider with search query
+final foodsListProvider = FutureProvider<List<FoodItem>>((ref) async {
+  ref.watch(currentUserProvider);
   final repo = ref.watch(ironBiteRepositoryProvider);
   final query = ref.watch(foodSearchQueryProvider);
-  return repo.watchFoods(query: query);
+  return await repo.getFoods(query: query);
 });
 
 // Auth state provider

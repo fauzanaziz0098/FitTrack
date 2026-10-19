@@ -127,7 +127,9 @@ class _FoodCameraScanSheetState extends ConsumerState<FoodCameraScanSheet> {
         );
       }
 
-      await repo.triggerFullSync();
+      ref.invalidate(mealLogsProvider);
+      ref.invalidate(dailySummaryProvider);
+      ref.invalidate(foodsListProvider);
 
       if (mounted) {
         Navigator.pop(context);
